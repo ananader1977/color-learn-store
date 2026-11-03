@@ -14,5 +14,28 @@ window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();pen
 window.addEventListener('appinstalled',()=>{pending=null;refresh()});
 new MutationObserver(refresh).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 refresh();
+
+// Cross-platform app download area
+const platform=isiOS?'ios':isAndroid?'android':isWindows?'windows':isMac?'mac':'other';
+const installText={
+en:{nav:'Download app',eyebrow:'Works across devices',title:'Install Color & Learn',summary:'We detect your operating system and show the appropriate installation option.',detected:'Detected device',desc:'Use the install button or follow instructions for your browser.',action:'Install app',ios:'In Safari, tap Share → Add to Home Screen. A signed iOS IPA is not available yet.',android:'Open in Chrome, tap ⋮ → Install app or Add to Home screen. The GitHub APK is a test build, not an official release.',windows:'Use Edge/Chrome menu → Apps → Install this site as an app. No separate EXE is provided.',mac:'Use Safari File → Add to Dock, or Chrome menu → Install page as app.',other:'Use a supported browser to install the app.',helpAndroid:'Install the website using Chrome. A test APK build may be available on GitHub.',helpIos:'Safari: Share → Add to Home Screen. Signed IPA is not yet available.',helpWindows:'Install the website as an app from Edge or Chrome. No separate EXE required.',helpMac:'Safari: Add to Dock, or install through Chrome.',btnAndroid:'Install on Android',btnIos:'Install on Apple',btnWindows:'Install on Windows',btnMac:'Install on Mac',apk:'Get test APK from GitHub (sign-in required)',installed:'Already installed on this device.'},
+ar:{nav:'تحميل التطبيق',eyebrow:'متاح على أجهزتك',title:'حمّل تطبيق لون وتعلّم',summary:'نكتشف نظام تشغيل جهازك ونعرض طريقة التثبيت المناسبة.',detected:'الجهاز المكتشف',desc:'اضغط تثبيت أو اتبع الخطوات في المتصفح.',action:'تثبيت التطبيق',ios:'في Safari اضغط مشاركة ثم إضافة إلى الشاشة الرئيسية. ملف IPA موقّع غير متاح حتى الآن.',android:'افتح الموقع في Chrome واضغط ⋮ ثم تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية. APK من GitHub إصدار تجريبي فقط.',windows:'من Edge أو Chrome اختر التطبيقات ثم تثبيت الموقع كتطبيق، دون الحاجة إلى ملف EXE.',mac:'في Safari اختر File ثم Add to Dock، أو ثبّت من Chrome.',other:'استخدم متصفحاً متوافقاً لتثبيت التطبيق.',helpAndroid:'ثبّت الموقع عبر Chrome. قد تتوفر نسخة APK تجريبية عبر GitHub.',helpIos:'من Safari: مشاركة ثم إضافة إلى الشاشة الرئيسية. لا توجد نسخة IPA موقّعة بعد.',helpWindows:'ثبّت الموقع كتطبيق عبر Edge أو Chrome، دون ملف EXE.',helpMac:'من Safari اختر إضافة إلى Dock، أو استخدم Chrome.',btnAndroid:'تثبيت على Android',btnIos:'تثبيت على Apple',btnWindows:'تثبيت على Windows',btnMac:'تثبيت على Mac',apk:'الحصول على APK تجريبي من GitHub (يتطلب الدخول)',installed:'التطبيق مثبت بالفعل على هذا الجهاز.'}};
+function refreshDownload(){const c=installText[loc()];const ids={navDownload:c.nav,downloadEyebrow:c.eyebrow,downloadTitle:c.title,downloadSummary:c.summary,detectedTitle:c.detected,detectedDesc:os+' — '+c.desc,detectedAction:installed()?c.installed:c.action,androidHelp:c.helpAndroid,iosHelp:c.helpIos,windowsHelp:c.helpWindows,macHelp:c.helpMac,apkBuildLink:c.apk};
+for(const [id,value] of Object.entries(ids)){const elem=document.getElementById(id);if(elem)elem.textContent=value}
+document.querySelectorAll('[data-platform-install]').forEach(button=>{button.textContent=c['btn'+button.dataset.platformInstall[0].toUpperCase()+button.dataset.platformInstall.slice(1)]||c.action});
+document.querySelectorAll('.downloadTile').forEach(card=>card.classList.toggle('detected',card.dataset.device===platform));
+document.getElementById('detectedAction').disabled=installed();
+}
+async function installFor(target){const c=installText[loc()],notice=document.getElementById('downloadNotice');
+if(target===platform&&pending){const p=pending;pending=null;try{await p.prompt();await p.userChoice}catch{}refresh();refreshDownload();return}
+notice.textContent=c[target]||c.other;notice.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+document.getElementById('detectedAction').addEventListener('click',()=>installFor(platform));
+document.querySelectorAll('[data-platform-install]').forEach(button=>button.addEventListener('click',()=>installFor(button.dataset.platformInstall)));
+window.addEventListener('beforeinstallprompt',refreshDownload);
+window.addEventListener('appinstalled',refreshDownload);
+new MutationObserver(refreshDownload).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+refreshDownload();
+
 if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{}));
 })();
