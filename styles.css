@@ -20,3 +20,5 @@
 .downloadNotice:empty{display:none}
 @media(max-width:850px){.downloadGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:550px){.downloadGrid{grid-template-columns:1fr}.detectedDevice{flex-wrap:wrap}.detectedDevice>div{flex:1 1 60%}.detectedDevice button{width:100%}}
+
+.headerDownload{background:#7752c7;color:white;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 13px;font-weight:800;font-size:13px;white-space:nowrap}.headerDownload:hover{background:#6340b5}@media(max-width:680px){.headerDownload{padding:9px 10px;font-size:12px}.navright{gap:5px}.navright .ghost,.navright .cartbtn{padding:9px}.logo small{display:none}}
