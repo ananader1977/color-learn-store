@@ -22,3 +22,17 @@
 @media(max-width:550px){.downloadGrid{grid-template-columns:1fr}.detectedDevice{flex-wrap:wrap}.detectedDevice>div{flex:1 1 60%}.detectedDevice button{width:100%}}
 
 .headerDownload{background:#7752c7;color:white;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 13px;font-weight:800;font-size:13px;white-space:nowrap}.headerDownload:hover{background:#6340b5}@media(max-width:680px){.headerDownload{padding:9px 10px;font-size:12px}.navright{gap:5px}.navright .ghost,.navright .cartbtn{padding:9px}.logo small{display:none}}
+/* Bundle card layout: isolate artwork from descriptive copy at every viewport. */
+.bundleGrid{align-items:stretch;grid-auto-rows:auto}
+.bundleGrid .bookCard{display:flex;flex-direction:column;min-width:0;height:100%;overflow:hidden;isolation:isolate}
+.bundleGrid .bookCard .cover{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;height:260px;min-height:260px;width:100%;padding:16px;overflow:hidden;background:linear-gradient(145deg,#f8eaff,#eff8ff)}
+.bundleGrid .bookCard .cover img{position:static;display:block;width:100%;height:100%;max-height:100%;max-width:100%;object-fit:contain;object-position:center;flex:none;box-shadow:none;border-radius:10px}
+.bundleGrid .bookCard .cardinfo{position:relative;z-index:1;display:flex;flex-direction:column;flex:1 0 auto;min-height:160px;padding:20px 18px;background:#fff;overflow-wrap:anywhere}
+.bundleGrid .bookCard .cardinfo h3{font-size:clamp(16px,1.4vw,19px);line-height:1.65;margin:9px 0 12px;min-height:0}
+.bundleGrid .bookCard .cardinfo .subline{line-height:1.8}
+.bundleGrid .bookCard .cardfooter{display:flex;align-items:center;flex-direction:row;gap:10px;justify-content:space-between;margin-top:auto}
+.bundleGrid .bookCard .cardfooter button{flex-shrink:0;white-space:normal;text-align:center}
+@media(max-width:800px){.bundleGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.bundleGrid .bookCard .cover{height:245px;min-height:245px}.bundleGrid .bookCard .cardinfo{padding:16px}}
+@media(max-width:550px){.bundleGrid{grid-template-columns:1fr}.bundleGrid .bookCard .cover{height:285px;min-height:285px}.bundleGrid .bookCard .cardinfo{min-height:145px}.bundleGrid .bookCard .cardfooter{flex-direction:row;align-items:center}}
+/* Ensure header controls remain distinct on narrow widths */
+.navright{align-items:center;flex-wrap:wrap;justify-content:flex-end}
