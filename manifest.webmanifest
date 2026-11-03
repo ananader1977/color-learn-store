@@ -1,0 +1,39 @@
+{
+  "id": "/",
+  "name": "Color & Learn | لون وتعلّم",
+  "short_name": "Color & Learn",
+  "description": "Bilingual printable educational activity books for kids.",
+  "lang": "en",
+  "dir": "auto",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "background_color": "#fffdf9",
+  "theme_color": "#7752c7",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "shopping"
+  ],
+  "shortcuts": [
+    {
+      "name": "Books",
+      "url": "/#books"
+    },
+    {
+      "name": "Bundles",
+      "url": "/#bundles"
+    }
+  ]
+}
