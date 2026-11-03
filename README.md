@@ -26,3 +26,6 @@ The contact page uses **ananader1@gmail.com**. Submitting the form opens the vis
 
 ## Before launch
 Check all Arabic books for cover punctuation and square-character issues, thoroughly review the English drafts, attach protected PDFs in Shopify, enable genuine card checkout, and verify DNS/HTTPS.
+
+## Redeployment
+GitHub Pages redeploy requested after the custom-domain DNS check succeeded on 2026-11-03. The site is served from the `main` branch, repository root.
