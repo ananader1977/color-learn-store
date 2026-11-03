@@ -27,7 +27,7 @@ document.querySelectorAll('.downloadTile').forEach(card=>card.classList.toggle('
 document.getElementById('detectedAction').disabled=installed();
 }
 async function installFor(target){const c=installText[loc()],notice=document.getElementById('downloadNotice');
-if(target===platform&&pending){const p=pending;pending=null;try{await p.prompt();await p.userChoice}catch{}refresh();refreshDownload();return}
+if(pending&&(target===platform||target==='other')){const p=pending;pending=null;try{await p.prompt();await p.userChoice}catch{}refresh();refreshDownload();return}
 notice.textContent=c[target]||c.other;notice.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 document.getElementById('detectedAction').addEventListener('click',()=>installFor(platform));
