@@ -22,7 +22,7 @@ const testMode=new URLSearchParams(window.location.search).get('test_checkout')=
 const testing=$('testCheckoutControls');
 if(testMode && testing){$('testCheckoutIntro').hidden=false;testing.hidden=false;$('checkoutBtn').hidden=true;$('demoBtn').hidden=true;const note=$('testCheckoutFeedback');
 $('testShopifyCheckoutBtn').onclick=()=>{note.textContent='';if(!$('testGatewayConfirmed').checked){note.textContent=t('testNotConfirmed');return;}
-if(!cart.length){note.textContent=t('testCartEmpty');return;}const lines=[];for(const item of cart){const product=catalog.find(p=>p.id===item.id);if(!product||!/^\\d+$/.test(String(product.variant||''))){note.textContent=t('testMissingVariant');return;}lines.push(product.variant+':'+item.qty);}
+if(!cart.length){note.textContent=t('testCartEmpty');return;}const lines=[];for(const item of cart){const product=catalog.find(p=>p.id===item.id);if(!product||!/^\d+$/.test(String(product.variant||''))){note.textContent=t('testMissingVariant');return;}lines.push(product.variant+':'+item.qty);}
 const testUrl='https://i36np1-k1.myshopify.com/cart/'+lines.join(',');window.location.assign(testUrl);};}
 $('demoBtn').onclick=()=>{$('demoModal').classList.add('open');$('demoMessage').textContent=''};
 $('closeDemo').onclick=()=>{$('demoModal').classList.remove('open')};
