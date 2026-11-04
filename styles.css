@@ -107,3 +107,14 @@
 .copyBadge{font-size:12px;font-weight:800;color:#266f5c;background:#e9f9ed;border:1px solid #cdebd6;border-radius:9px;padding:7px 9px;margin-bottom:9px}
 .deliveryNotice{font-size:12px;color:#495b74;line-height:1.7;padding:10px 12px;background:#f1f8ff;border:1px solid #dfeafa;border-radius:10px}
 @media(max-width:650px){.copiesPolicy{grid-template-columns:1fr;margin:12px auto}.copiesPolicy>div{padding:13px 15px}}
+
+/* Internal opt-in QA checkout: disabled for ordinary storefront visitors. */
+#testCheckoutIntro{max-width:1200px;margin:20px auto;border:1px solid #d9c5ed;background:#fff4e5;padding:20px 25px;border-radius:16px;color:#5b4667}
+#testCheckoutIntro strong{font-size:18px}
+#testCheckoutIntro p{font-size:13px;line-height:1.7}
+.testCheckoutControls{padding:12px 0;display:grid;gap:12px}
+.testCheckoutControls[hidden],#testCheckoutIntro[hidden],#checkoutBtn[hidden],#demoBtn[hidden]{display:none!important}
+.testOnlyBanner{display:grid;gap:6px;background:#fff3e5;border:1px solid #f3c5a0;border-radius:12px;padding:14px;font-size:12px;line-height:1.6}
+.testConfirm{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.65}
+.testConfirm input{margin-top:4px}
+#testCheckoutFeedback{color:#aa3030;font-weight:800;font-size:12px}
