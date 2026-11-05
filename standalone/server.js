@@ -14,13 +14,29 @@ const validProduct=id=>/^(ar|en)-[0-9]+-(3-5|5-8)$/.test(id)||/^bundle-[0-9]+-(3
 const filePath=id=>path.join(filesDir,id+'.pdf');
 const sign=(order,id,email,exp)=>crypto.createHmac('sha256',SECRET).update([order,id,email,exp].join('|')).digest('hex');
 const baseUrl=req=>(process.env.PUBLIC_BASE_URL||('https://'+req.headers.host)).replace(/\/$/,'');
-const lookup=(order,id,exp,sig)=>{if(!SECRET||!/^[-\w]{10,80}$/.test(order)||!validProduct(id)||!/^\d{10,14}$/.test(exp)||Number(exp)<Math.floor(Date.now()/1000))return null;const fname=path.join(ordersDir,order+'.json');if(!fs.existsSync(fname))return null;const o=JSON.parse(fs.readFileSync(fname));if(!o.products.includes(id)||!timingEq(sig,sign(order,id,o.email,exp)))return null;return o};
+// Stateless HMAC links survive loss of ephemeral order JSON records.
+const signLink=(order,id,exp)=>crypto.createHmac('sha256',SECRET).update(['v2',order,id,exp].join('|')).digest('hex');
+const lookup=(order,id,exp,sig,version)=>{
+ if(!SECRET||!/^[-\w]{10,80}$/.test(order)||!validProduct(id)||!/^\d{10,14}$/.test(exp))return {error:'invalid'};
+ if(Number(exp)<Math.floor(Date.now()/1000))return {error:'expired'};
+ if(version==='2')return timingEq(sig,signLink(order,id,exp))?{valid:true}:{error:'invalid'};
+ const fname=path.join(ordersDir,order+'.json');
+ if(!fs.existsSync(fname))return {error:'order_missing'};
+ const record=JSON.parse(fs.readFileSync(fname));
+ return record.products.includes(id)&&timingEq(sig,sign(order,id,record.email,exp))?{valid:true}:{error:'invalid'};
+};
 const limiter=new Map();function limit(req){const ip=(req.socket.remoteAddress||'local');const now=Date.now();const old=limiter.get(ip)||[];const latest=old.filter(t=>now-t<60000);if(latest.length>15)return false;latest.push(now);limiter.set(ip,latest);return true}
 const sendEmail=async(to,order,links)=>{const key=process.env.RESEND_API_KEY,from=process.env.EMAIL_FROM;if(!key||!from)return {sent:false,reason:'Email provider is not configured (RESEND_API_KEY and EMAIL_FROM are required).'};
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const list=links.map(x=>'<li><a href="'+esc(x.url)+'">'+esc(x.name)+'</a></li>').join('');
- const html='<h2>Color & Learn — TEST delivery only</h2><p>This is a simulated test order. No money has been charged. Your temporary secure download links:</p><ul>'+list+'</ul><p>هذه رسالة اختبار، ولم يتم تحصيل أي مبلغ.</p><p>Order: '+esc(order)+'</p>';
+ const html='<h2>Color & Learn — TEST delivery only</h2><p>This is a simulated test order. No money has been charged. Download links are valid for 24 hours while protected files are hosted. For small purchases, the PDFs are also attached to this email, because free Render may erase uploads on restart:</p><ul>'+list+'</ul><p>هذه رسالة اختبار، ولم يتم تحصيل أي مبلغ.</p><p>Order: '+esc(order)+'</p>';
  const payload={from,to:[to],subject:'[TEST — NO CHARGE] Color & Learn PDF download — '+order,html};
+// Email a small PDF attachment as fallback if free Render loses uploaded files.
+let attachmentBytes=0;const attachments=[];
+for(const link of links){const fp=filePath(link.id);if(!fs.existsSync(fp))continue;const size=fs.statSync(fp).size;
+if(attachmentBytes+size>8*1024*1024)break;attachmentBytes+=size;
+attachments.push({filename:link.id+'.pdf',content:fs.readFileSync(fp).toString('base64')});}
+if(attachments.length)payload.attachments=attachments;
  const merchant='ananader2026@hotmail.com';
  if(process.env.COPY_MERCHANT_EMAIL==='true'&&to.toLowerCase()!==merchant)payload.bcc=[merchant];
  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+key},body:JSON.stringify(payload),signal:AbortSignal.timeout(14000)});
@@ -55,17 +71,17 @@ const handler=async(req,res)=>{const url=new URL(req.url,'http://localhost');
    const ids=[...new Set(items.map(x=>x.id))];
    const missing=ids.filter(id=>!fs.existsSync(filePath(id)));
    if(missing.length)return json(res,409,{error:'Private PDFs not yet uploaded for these products.',missing});
-   const order=crypto.randomBytes(14).toString('hex'),exp=Math.floor(Date.now()/1000)+3600;
+   const order=crypto.randomBytes(14).toString('hex'),exp=Math.floor(Date.now()/1000)+24*3600;
    const record={order,email,products:ids,createdAt:new Date().toISOString(),status:'SIMULATED_TEST_ONLY'};
    fs.writeFileSync(path.join(ordersDir,order+'.json'),JSON.stringify(record),{mode:0o600});
-   const links=ids.map(id=>({id,name:id+'.pdf',url:baseUrl(req)+'/api/download?order='+order+'&product='+id+'&exp='+exp+'&sig='+sign(order,id,email,exp)}));
+   const links=ids.map(id=>({id,name:id+'.pdf',url:baseUrl(req)+'/api/download?order='+order+'&product='+id+'&exp='+exp+'&v=2&sig='+signLink(order,id,exp)}));
    let delivery;try{delivery=await sendEmail(email,order,links)}catch(e){delivery={sent:false,reason:'Email sending failed; check service logs and credentials.'}};
-   return json(res,200,{ok:true,order,payment:'SIMULATED_TEST_ONLY',charged:false,expiresInMinutes:60,links,email:delivery});
+   return json(res,200,{ok:true,order,payment:'SIMULATED_TEST_ONLY',charged:false,expiresInMinutes:1440,links,email:delivery});
  }
  if(url.pathname==='/api/download'&&req.method==='GET'){
    const order=url.searchParams.get('order')||'',id=url.searchParams.get('product')||'',exp=url.searchParams.get('exp')||'',sig=url.searchParams.get('sig')||'';
-   const authorized=lookup(order,id,exp,sig);if(!authorized)return json(res,403,{error:'Invalid or expired download link'});
-   const fp=filePath(id);if(!fs.existsSync(fp))return json(res,410,{error:'The private file is no longer on the server'});
+   const access=lookup(order,id,exp,sig,url.searchParams.get('v')||'');if(!access.valid)return json(res,403,{error:access.error==='expired'?'Download link expired after 24 hours':access.error==='order_missing'?'Previous test order vanished in free Render storage; create a new test order.':'Invalid download link',reason:access.error});
+   const fp=filePath(id);if(!fs.existsSync(fp))return json(res,410,{error:'PDF file vanished after a free Render restart or redeploy; reupload the PDF and create a new test order'});
    return sendFile(res,fp,id+'.pdf','application/pdf');
  }
  if(req.method==='GET'||req.method==='HEAD')return serveStatic(req,res,url);
