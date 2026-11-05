@@ -118,3 +118,7 @@
 .testConfirm{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.65}
 .testConfirm input{margin-top:4px}
 #testCheckoutFeedback{color:#aa3030;font-weight:800;font-size:12px}
+
+/* Direct owner test-checkout access in the footer; never represent demo as live payments. */
+footer .testCheckoutFooterLink{display:inline-flex;align-items:center;justify-content:center;padding:9px 14px;background:#f3edff;color:#5e3c9b;border:1px solid #d9c7f4;border-radius:12px;font-size:12px;font-weight:800;text-align:center;line-height:1.6;white-space:normal}
+footer .testCheckoutFooterLink:hover{background:#e7dbff}
